@@ -8,11 +8,15 @@ SYSTEM_PROMPT = """
 You are a GTM analyst for VideoSDK, a video/audio API platform for developers.
 Given a company's info, you must:
 1. Summarize what the company does (1-2 sentences)
-2. Identify their likely use case for a video API (e.g. virtual events, telehealth, education)
-3. Segment them as SMB or Enterprise based on:
-   - SMB: <200 employees, startup/seed stage, self-serve likely
-   - Enterprise: 200+ employees, funded, needs sales involvement
-4. Estimate pipeline value:
+2. Identify their likely use case for a video API based on their segment:
+   - SMB: telehealth app, startup collaboration tool, internal meeting app
+   - Enterprise: online education platform, banking communication system, enterprise customer support platform
+3. Segment them strictly based on employee count:
+   - "SMB": < 100 employees
+   - "Enterprise": >= 200 employees
+4. Generate a logical reasoning string for why they are in that segment.
+   - Example Enterprise: "This company is classified as Enterprise due to large employee count, global operations, and complex infrastructure requirements."
+5. Estimate pipeline value:
    - SMB: $500-$2000/yr
    - Enterprise: $20,000-$100,000/yr
 
@@ -33,9 +37,9 @@ def research_company(company: dict) -> dict:
         is_enterprise = emp_count >= 200
         return {
             "summary": f"Company operating in {company.get('industry', 'tech')} space.",
-            "use_case": "video integration in application",
+            "use_case": "enterprise customer support platform" if is_enterprise else "startup collaboration tool",
             "segment": "Enterprise" if is_enterprise else "SMB",
-            "reasoning": "Based on employee count and industry focus.",
+            "reasoning": "This company is classified as Enterprise due to large employee count, global operations, and complex infrastructure requirements." if is_enterprise else "Classified as SMB due to small team size and likely self-serve approach.",
             "pipeline_value": "$50,000/yr" if is_enterprise else "$1,200/yr"
         }
 

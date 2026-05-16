@@ -1,77 +1,95 @@
-import openai, os
+import openai, os, json
 from dotenv import load_dotenv
 load_dotenv()
 
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-SMB_EMAIL_PROMPT = """
-Write a SHORT cold email (under 100 words) for a startup founder or CTO.
-Tone: casual, direct, peer-to-peer. No fluff.
-Goal: get them to try VideoSDK.live for free (self-serve).
-Mention their specific use case. End with a CTA to sign up free.
-Do NOT use generic phrases like "I hope this finds you well".
-"""
+MASTER_OUTREACH_PROMPT = """
+You are an expert AI SDR (Sales Development Representative) for VideoSDK.
 
-ENTERPRISE_EMAIL_PROMPT = """
-Write a cold email (120-150 words) for a VP/CTO at a mid-market/enterprise company.
-Tone: professional, value-focused, ROI-driven.
-Goal: book a 20-minute demo call.
-Mention their company context, the pain point, and how VideoSDK solves it at scale.
-Include a specific CTA to schedule a call.
-"""
+Your task is to generate:
+1. A personalized cold email
+2. A personalized LinkedIn DM
 
-SMB_DM_PROMPT = """
-Write a LinkedIn DM under 50 words for a startup founder.
-Casual, genuine, no pitching. Just start a conversation around their use case.
-"""
+The messages MUST feel human, personalized, and relevant to the prospect's business.
 
-ENTERPRISE_DM_PROMPT = """
-Write a LinkedIn DM (60-80 words) for a senior enterprise contact.
-Professional, specific to their company, opens with an insight or question.
-Goal: get a reply that leads to a call.
+Follow these rules carefully:
+
+### PRIORITY RULES
+- Do NOT sound generic or like a mass template.
+- Mention the company context naturally (use the provided company summary).
+- Show that you understand the company's industry and use case for VideoSDK.
+- Keep SMB outreach short and casual.
+- Keep Enterprise outreach professional and detailed.
+- Use natural language, not marketing buzzwords.
+- Include one clear CTA only.
+
+### CTA RULES
+For SMB:
+- "Worth trying our free version?"
+- "Happy to share a quick setup link."
+
+For Enterprise:
+- "Open to a quick 20-minute demo next week?"
+- "Would it make sense to explore this further?"
+
+### OUTPUT FORMAT
+Return ONLY a valid JSON object with exactly two keys: "cold_email" and "linkedin_dm". Do not use markdown blocks around the JSON.
+{
+  "cold_email": "Subject: ...\\n\\nHi Name,\\n...",
+  "linkedin_dm": "Hey Name, ..."
+}
 """
 
 def generate_outreach(contact: dict, company: dict, research: dict) -> dict:
     if not os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY") == "your_key_here":
-        # Fallback to mock data
+        # Fallback to mock data if no OpenAI key
+        is_smb = research.get("segment") == "SMB"
+        cta = "Worth trying our free version?" if is_smb else "Open to a quick 20-minute demo next week?"
+        first_name = contact['name'].split()[0] if 'name' in contact else 'there'
+        
         return {
-            "cold_email": f"Hi {contact['name']},\n\nMock email body targeting {research.get('use_case', 'video')} for {company['name']}.\n\nBest,\nSDR",
-            "linkedin_dm": f"Hey {contact['name']}, noticed you at {company['name']}. Let's chat about {research.get('use_case', 'video')}."
+            "cold_email": f"Subject: {company['name']} + VideoSDK\n\nHi {first_name},\n\nI noticed {company['name']} is building interesting things in the {company.get('industry', 'tech')} space. Since you are the {contact.get('title', 'leader')}, I thought you might be dealing with {research.get('use_case', 'video streaming')} challenges.\n\nVideoSDK helps teams solve exactly this at scale.\n\n{cta}\n\nBest,\nSDR",
+            "linkedin_dm": f"Hey {first_name}, loved what {company['name']} is doing. Wondering how you're handling {research.get('use_case', 'video')}? {cta}"
         }
 
     segment = research.get("segment", "SMB")
     use_case = research.get("use_case", "video communication")
     summary = research.get("summary", "")
 
-    context = f"""
-Contact: {contact['name']}, {contact['title']} at {company['name']}
-Company summary: {summary}
-Use case for VideoSDK: {use_case}
-Segment: {segment}
+    user_context = f"""
+Prospect Name: {contact.get('name', 'Unknown')}
+Role: {contact.get('title', 'Unknown')}
+Company: {company.get('name', 'Unknown')}
+Industry: {company.get('industry', 'Technology')}
+Company Size: {segment}
+Company Summary: {summary}
+Product/Service Being Sold: VideoSDK (Video/Audio API)
+Pain Point Solved/Use Case: {use_case}
 """
 
-    email_prompt = SMB_EMAIL_PROMPT if segment == "SMB" else ENTERPRISE_EMAIL_PROMPT
-    dm_prompt = SMB_DM_PROMPT if segment == "SMB" else ENTERPRISE_DM_PROMPT
-
-    def call_gpt(system, user):
-        try:
-            r = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user}
-                ],
-                temperature=0.7
-            )
-            return r.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Error generating outreach: {e}")
-            return f"Error: {str(e)}"
-
-    return {
-        "cold_email": call_gpt(email_prompt, context),
-        "linkedin_dm": call_gpt(dm_prompt, context)
-    }
+    try:
+        r = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": MASTER_OUTREACH_PROMPT},
+                {"role": "user", "content": user_context}
+            ],
+            temperature=0.7
+        )
+        raw = r.choices[0].message.content.strip()
+        if raw.startswith("```json"):
+            raw = raw.replace("```json", "", 1)
+        if raw.endswith("```"):
+            raw = raw[::-1].replace("```", "", 1)[::-1]
+        
+        return json.loads(raw.strip())
+    except Exception as e:
+        print(f"Error generating outreach for {contact.get('name')}: {e}")
+        return {
+            "cold_email": f"Error generating email: {e}",
+            "linkedin_dm": f"Error generating DM: {e}"
+        }
 
 def generate_all_outreach(companies_data):
     for item in companies_data:
