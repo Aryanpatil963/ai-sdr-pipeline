@@ -1,0 +1,16 @@
+# Environment variables (NEVER commit this!)
+.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Output files
+pipeline_output.json
+
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
