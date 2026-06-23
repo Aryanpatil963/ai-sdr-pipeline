@@ -5,7 +5,7 @@ load_dotenv()
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 MASTER_OUTREACH_PROMPT = """
-You are an expert AI SDR (Sales Development Representative) for VideoSDK.
+You are an expert AI SDR (Sales Development Representative).
 
 Your task is to generate:
 1. A personalized cold email
@@ -18,7 +18,7 @@ Follow these rules carefully:
 ### PRIORITY RULES
 - Do NOT sound generic or like a mass template.
 - Mention the company context naturally (use the provided company summary).
-- Show that you understand the company's industry and use case for VideoSDK.
+- Show that you understand the company's industry and use case.
 - Keep SMB outreach short and casual.
 - Keep Enterprise outreach professional and detailed.
 - Use natural language, not marketing buzzwords.
@@ -49,7 +49,7 @@ def generate_outreach(contact: dict, company: dict, research: dict) -> dict:
         first_name = contact['name'].split()[0] if 'name' in contact else 'there'
         
         return {
-            "cold_email": f"Subject: {company['name']} + VideoSDK\n\nHi {first_name},\n\nI noticed {company['name']} is building interesting things in the {company.get('industry', 'tech')} space. Since you are the {contact.get('title', 'leader')}, I thought you might be dealing with {research.get('use_case', 'video streaming')} challenges.\n\nVideoSDK helps teams solve exactly this at scale.\n\n{cta}\n\nBest,\nSDR",
+            "cold_email": f"Subject: {company['name']} + Our Platform\n\nHi {first_name},\n\nI noticed {company['name']} is building interesting things in the {company.get('industry', 'tech')} space. Since you are the {contact.get('title', 'leader')}, I thought you might be dealing with {research.get('use_case', 'API')} challenges.\n\nOur platform helps teams solve exactly this at scale.\n\n{cta}\n\nBest,\nSDR",
             "linkedin_dm": f"Hey {first_name}, loved what {company['name']} is doing. Wondering how you're handling {research.get('use_case', 'video')}? {cta}"
         }
 
@@ -64,7 +64,7 @@ Company: {company.get('name', 'Unknown')}
 Industry: {company.get('industry', 'Technology')}
 Company Size: {segment}
 Company Summary: {summary}
-Product/Service Being Sold: VideoSDK (Video/Audio API)
+Product/Service Being Sold: Our API Platform
 Pain Point Solved/Use Case: {use_case}
 """
 

@@ -45,7 +45,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 AI Outbound SDR Pipeline — VideoSDK")
+st.title("🚀 AI Outbound SDR Pipeline")
 st.markdown("<p style='text-align: center; color: #888;'>Automated Discovery, AI Research & Personalized Outreach Generation</p>", unsafe_allow_html=True)
 
 try:
@@ -113,7 +113,7 @@ for item in data:
         col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown(f"**What they do:** {r.get('summary', 'No summary generated')}")
-            st.markdown(f"**VideoSDK use case:** {r.get('use_case', 'Unknown')}")
+            st.markdown(f"**API use case:** {r.get('use_case', 'Unknown')}")
             st.info(f"**AI Reasoning:** {r.get('reasoning', 'No reasoning provided')}")
         with col2:
             st.markdown(f"**Domain:** [{co.get('domain', '#')}](https://{co.get('domain', '')})")

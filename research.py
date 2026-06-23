@@ -5,7 +5,7 @@ load_dotenv()
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are a GTM analyst for VideoSDK, a video/audio API platform for developers.
+You are a GTM analyst for an API platform for developers.
 Given a company's info, you must:
 1. Summarize what the company does (1-2 sentences)
 2. Identify their likely use case for a video API based on their segment:

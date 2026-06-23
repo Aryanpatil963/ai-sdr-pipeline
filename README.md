@@ -1,11 +1,11 @@
-# AI SDR Pipeline - VideoSDK
+# AI SDR Pipeline
 
 Automated pipeline for finding prospects, researching them with AI, and generating hyper-personalized outreach.
 
 ## What it does
 1. **Discovery:** Finds target companies and specific personas (CTOs, VPs of Eng) using Apollo.io.
 2. **AI Research:** Uses GPT to analyze company descriptions and categorizes them into "SMB" vs "Enterprise" based on size, industry, and use case.
-3. **Outreach Generation:** Writes distinct, personalized cold emails and LinkedIn DMs based on the persona and the company's specific video/audio API needs.
+3. **Outreach Generation:** Writes distinct, personalized cold emails and LinkedIn DMs based on the persona and the company's specific API needs.
 4. **Dashboard:** Provides a clean Streamlit interface to view pipeline value, account research, and generated copy.
 
 ## Setup
